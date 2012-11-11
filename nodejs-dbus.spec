@@ -6,7 +6,7 @@
 Summary:	D-Bus binding for node.js
 Name:		nodejs-%{pkg}
 Version:	0.0.4
-Release:	1
+Release:	2
 License:	MIT
 Group:		Development/Libraries
 URL:		https://github.com/Shouqun/node-dbus
