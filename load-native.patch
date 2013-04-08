@@ -1,0 +1,10 @@
+--- nodejs-dbus-0.0.10/lib/dbus.js~	2012-12-15 11:17:58.000000000 +0200
++++ nodejs-dbus-0.0.10/lib/dbus.js	2013-04-08 21:06:26.660486280 +0300
+@@ -1,6 +1,6 @@
+ var util = require('util');
+ var EventEmitter = require('events').EventEmitter;
+-var dbuslib = require('../build/Release/dbus.node');
++var dbuslib = require('./dbus.node');
+ var GContext = require('gcontext');
+ 
+ function DBusConnection() {

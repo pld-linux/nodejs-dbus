@@ -5,21 +5,27 @@
 %define		pkg	dbus
 Summary:	D-Bus binding for node.js
 Name:		nodejs-%{pkg}
-Version:	0.0.4
-Release:	2
+Version:	0.0.10
+Release:	1
 License:	MIT
 Group:		Development/Libraries
-URL:		https://github.com/Shouqun/node-dbus
 Source0:	http://registry.npmjs.org/dbus/-/%{pkg}-%{version}.tgz
-# Source0-md5:	1a31a9aca3367897684a491a548d1f08
+# Source0-md5:	6af3be618225f5596bd9778ebd90b85a
+Patch0:		load-native.patch
+URL:		https://github.com/Shouqun/node-dbus
 BuildRequires:	dbus-devel
 BuildRequires:	dbus-glib-devel
 BuildRequires:	expat-devel
+BuildRequires:	nodejs >= 0.8
 BuildRequires:	nodejs-devel
-BuildRequires:	rpmbuild(macros) >= 1.634
-Requires:	nodejs
+BuildRequires:	nodejs-gyp
+BuildRequires:	rpmbuild(macros) >= 1.657
+BuildRequires:	sed >= 4.0
+Requires:	nodejs >= 0.8
+Requires:	nodejs-gcontext >= 0.0.2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+# redefine for arch specific
 %define		nodejs_libdir %{_libdir}/node
 
 %description
@@ -27,31 +33,33 @@ D-Bus binding for node.js.
 
 Has the following capabilities:
 - call D-Bus methods
+- asynchronous method call
 - receive D-Bus signals
 - export D-Bus services
 
 %prep
 %setup -qc
 mv package/* .
+%patch0 -p1
+
+rm lib/.travis.yml
 
 %build
-NODE_PATH=%{nodejs_libdir}/%{pkg} \
-node-waf configure build
+node-gyp configure --nodedir=/usr/src/nodejs --gyp=/usr/bin/gyp
+node-gyp build --jobs=%{?__jobs} --verbose
 
 %if %{with tests}
-NODE_PATH=lib node -e 'require("%{pkg}")'
+node -e 'require("./build/Release/%{pkg}")'
 %endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
-node-waf install \
-	--destdir=$RPM_BUILD_ROOT
-
 install -d $RPM_BUILD_ROOT%{nodejs_libdir}/%{pkg}
-cp -a lib package.json $RPM_BUILD_ROOT%{nodejs_libdir}/%{pkg}
+cp -pr lib package.json $RPM_BUILD_ROOT%{nodejs_libdir}/%{pkg}
+install -p build/Release/%{pkg}.node $RPM_BUILD_ROOT%{nodejs_libdir}/%{pkg}
 
-# waf installed to wrong dir
-rm $RPM_BUILD_ROOT%{nodejs_libdir}/%{pkg}/dbus.node
+install -d $RPM_BUILD_ROOT%{_examplesdir}/%{name}-%{version}
+cp -a examples/* $RPM_BUILD_ROOT%{_examplesdir}/%{name}-%{version}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -64,4 +72,5 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{nodejs_libdir}/%{pkg}/lib
 %{nodejs_libdir}/%{pkg}/lib/dbus.js
 %{nodejs_libdir}/%{pkg}/lib/dbus_register.js
-%attr(755,root,root) %{nodejs_libdir}/%{pkg}/lib/%{pkg}.node
+%attr(755,root,root) %{nodejs_libdir}/%{pkg}/%{pkg}.node
+%{_examplesdir}/%{name}-%{version}
