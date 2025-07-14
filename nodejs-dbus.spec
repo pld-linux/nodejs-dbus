@@ -40,7 +40,7 @@ Has the following capabilities:
 %prep
 %setup -qc
 mv package/* .
-%patch0 -p1
+%patch -P0 -p1
 
 rm lib/.travis.yml
 
